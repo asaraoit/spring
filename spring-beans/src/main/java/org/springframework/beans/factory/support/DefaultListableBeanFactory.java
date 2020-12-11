@@ -791,6 +791,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		if (beanDefinition instanceof AbstractBeanDefinition) {
 			try {
+				/*
+				 * 注册前的最后一次校验，这里的校验不同于之前的 XML 文件校验
+				 * 主要是对u AbstractBean Definition 属性中的 methodOverrides校验，
+				 * 校验 methodOverrides 是否于工厂方法并存或者 methodOverrides 对应的方法根本不存在
+				 */
 				((AbstractBeanDefinition) beanDefinition).validate();
 			}
 			catch (BeanDefinitionValidationException ex) {
@@ -799,13 +804,17 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// beanDefinitionMap 为 currentHashMap
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
+		// 处理已经注册的 beanName 情况
 		if (existingDefinition != null) {
+			// 如果对应的 beanName 已经注册且在配置中配置了 bean 不允许被覆盖，则抛出异常
 			if (!isAllowBeanDefinitionOverriding()) {
 				throw new BeanDefinitionStoreException(beanDefinition.getResourceDescription(), beanName,
 						"Cannot register bean definition [" + beanDefinition + "] for bean '" + beanName +
 						"': There is already [" + existingDefinition + "] bound.");
 			}
+			// 如果当前 bean 的角色 大于已经注册的备案，启用 warn 日志的情况，打印 warn 日志
 			else if (existingDefinition.getRole() < beanDefinition.getRole()) {
 				// e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
 				if (logger.isWarnEnabled()) {
@@ -814,6 +823,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							existingDefinition + "] with [" + beanDefinition + "]");
 				}
 			}
+			// 当前 bean 与 已注册的 bean 不是同一个 bean
 			else if (!beanDefinition.equals(existingDefinition)) {
 				if (logger.isInfoEnabled()) {
 					logger.info("Overriding bean definition for bean '" + beanName +
@@ -828,13 +838,20 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							"] with [" + beanDefinition + "]");
 				}
 			}
+			// 注册 beanDefinition
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
+		// beanName 未被注册的情况
 		else {
+			// 有 bean 已经创建
 			if (hasBeanCreationStarted()) {
+				// 不能再修改启动时集合元素（对于稳定的迭代）
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
+				// 因为 beanDefinitionMap 时全局变量，这里定会存在并发访问的情况
 				synchronized (this.beanDefinitionMap) {
+					// 注册 bean
 					this.beanDefinitionMap.put(beanName, beanDefinition);
+					// 记录 beanName
 					List<String> updatedDefinitions = new ArrayList<>(this.beanDefinitionNames.size() + 1);
 					updatedDefinitions.addAll(this.beanDefinitionNames);
 					updatedDefinitions.add(beanName);
@@ -848,6 +865,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 			else {
 				// Still in startup registration phase
+				// 仍在启动注册阶段
 				this.beanDefinitionMap.put(beanName, beanDefinition);
 				this.beanDefinitionNames.add(beanName);
 				this.manualSingletonNames.remove(beanName);
@@ -856,6 +874,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		if (existingDefinition != null || containsSingleton(beanName)) {
+			// 重置所有 beanName 对应的缓存
 			resetBeanDefinition(beanName);
 		}
 		else if (isConfigurationFrozen()) {

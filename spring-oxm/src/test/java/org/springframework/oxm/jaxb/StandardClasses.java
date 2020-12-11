@@ -37,7 +37,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 /**
- * Used by {@link org.springframework.oxm.jaxb.Jaxb2MarshallerTests}.
+ * Used by
  *
  * @author Arjen Poutsma
  */

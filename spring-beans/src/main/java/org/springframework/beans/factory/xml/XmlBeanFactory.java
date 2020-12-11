@@ -71,11 +71,12 @@ public class XmlBeanFactory extends DefaultListableBeanFactory {
 	 * Create a new XmlBeanFactory with the given input stream,
 	 * which must be parsable using DOM.
 	 * @param resource XML resource to load bean definitions from
-	 * @param parentBeanFactory parent bean factory
+	 * @param parentBeanFactory parent bean factory （父类 BeanFactory 用于合并 factory，可以为空）
 	 * @throws BeansException in case of loading or parsing errors
 	 */
 	public XmlBeanFactory(Resource resource, BeanFactory parentBeanFactory) throws BeansException {
 		super(parentBeanFactory);
+		// 1
 		this.reader.loadBeanDefinitions(resource);
 	}
 

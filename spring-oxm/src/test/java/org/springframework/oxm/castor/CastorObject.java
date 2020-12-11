@@ -17,7 +17,7 @@
 package org.springframework.oxm.castor;
 
 /**
- * Represents a POJO used by {@link CastorMarshallerTests} for testing the marshaller output.
+ * Represents a POJO used by for testing the marshaller output.
  *
  * @author Jakub Narloch
  */

@@ -65,6 +65,7 @@ import org.springframework.lang.Nullable;
 public interface FactoryBean<T> {
 
 	/**
+	 * 返回由 FactoryBean 创建的 bean 实例，如果 isSingleton() 返回 true，则该实例会放到 spring 容器中单实例缓存池中
 	 * Return an instance (possibly shared or independent) of the object
 	 * managed by this factory.
 	 * <p>As with a {@link BeanFactory}, this allows support for both the
@@ -85,6 +86,7 @@ public interface FactoryBean<T> {
 	T getObject() throws Exception;
 
 	/**
+	 * 返回 FactoryBean 创建的 bean 的类型
 	 * Return the type of object that this FactoryBean creates,
 	 * or {@code null} if not known in advance.
 	 * <p>This allows one to check for specific types of beans without
@@ -107,6 +109,7 @@ public interface FactoryBean<T> {
 	Class<?> getObjectType();
 
 	/**
+	 * 这个工厂管理的 bean 是否是单例
 	 * Is the object managed by this factory a singleton? That is,
 	 * will {@link #getObject()} always return the same object
 	 * (a reference that can be cached)?

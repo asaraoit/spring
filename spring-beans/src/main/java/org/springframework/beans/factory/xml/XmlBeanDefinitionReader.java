@@ -301,6 +301,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 */
 	@Override
 	public int loadBeanDefinitions(Resource resource) throws BeanDefinitionStoreException {
+		// 1.1
 		return loadBeanDefinitions(new EncodedResource(resource));
 	}
 
@@ -311,12 +312,13 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @return the number of bean definitions found
 	 * @throws BeanDefinitionStoreException in case of loading or parsing errors
 	 */
+	// 1.3
 	public int loadBeanDefinitions(EncodedResource encodedResource) throws BeanDefinitionStoreException {
 		Assert.notNull(encodedResource, "EncodedResource must not be null");
 		if (logger.isInfoEnabled()) {
 			logger.info("Loading XML bean definitions from " + encodedResource);
 		}
-
+		// 通过属性来记录已加载的资源
 		Set<EncodedResource> currentResources = this.resourcesCurrentlyBeingLoaded.get();
 		if (currentResources == null) {
 			currentResources = new HashSet<>(4);
@@ -327,15 +329,19 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 					"Detected cyclic loading of " + encodedResource + " - check your import definitions!");
 		}
 		try {
+			// 1.3.1 从encodeResource 对象中获取 Resource 对象并再次从Resource中获取其中的InputStream
 			InputStream inputStream = encodedResource.getResource().getInputStream();
 			try {
+				// 1.3.2 InputSource 这个类型并不来自与Spring 它的全路径是 org.xml.sax.InputSource
 				InputSource inputSource = new InputSource(inputStream);
 				if (encodedResource.getEncoding() != null) {
 					inputSource.setEncoding(encodedResource.getEncoding());
 				}
+				// 1.3.3 真正进入了核心逻辑部分
 				return doLoadBeanDefinitions(inputSource, encodedResource.getResource());
 			}
 			finally {
+				// 关闭输入流
 				inputStream.close();
 			}
 		}
@@ -388,7 +394,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	protected int doLoadBeanDefinitions(InputSource inputSource, Resource resource)
 			throws BeanDefinitionStoreException {
 		try {
+			// 解析 XML
 			Document doc = doLoadDocument(inputSource, resource);
+			// 根据 Document 返回注册 Bean 信息
 			return registerBeanDefinitions(doc, resource);
 		}
 		catch (BeanDefinitionStoreException ex) {
@@ -426,11 +434,13 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see DocumentLoader#loadDocument
 	 */
 	protected Document doLoadDocument(InputSource inputSource, Resource resource) throws Exception {
+		// 加载 XML 文件，并得到对应的 Document
 		return this.documentLoader.loadDocument(inputSource, getEntityResolver(), this.errorHandler,
 				getValidationModeForResource(resource), isNamespaceAware());
 	}
 
 	/**
+	 * 获取对XML 文件的验证模式
 	 * Determine the validation mode for the specified {@link Resource}.
 	 * If no explicit validation mode has been configured, then the validation
 	 * mode gets {@link #detectValidationMode detected} from the given resource.
@@ -440,9 +450,11 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 */
 	protected int getValidationModeForResource(Resource resource) {
 		int validationModeToUse = getValidationMode();
+		// 如果手动指定了验证模式则使用指定的验证模式
 		if (validationModeToUse != VALIDATION_AUTO) {
 			return validationModeToUse;
 		}
+		// 如果未指定则使用自动检测（判断文件是否包含 DOCTYPE 包含就是 DTD ，不包含就是 XSD）
 		int detectedMode = detectValidationMode(resource);
 		if (detectedMode != VALIDATION_AUTO) {
 			return detectedMode;
@@ -503,9 +515,13 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see BeanDefinitionDocumentReader#registerBeanDefinitions
 	 */
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
+		// 使用 DefaultBeanDefinitionDocumentReader 实例化 BeanDefinitionDocumentReader
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
+		// 记录统计前 BeanDefinition 的加载个数
 		int countBefore = getRegistry().getBeanDefinitionCount();
+		// 加载及注册 bean
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
+		// 记录本次加载的 BeanDefinition 个数
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}
 

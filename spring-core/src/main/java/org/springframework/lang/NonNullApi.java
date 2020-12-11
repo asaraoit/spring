@@ -25,6 +25,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.meta.TypeQualifierDefault;
 
 /**
+ * 一个通用的 Spring 注解，用于声明参数很返回值对于给定的包，默认情况下时不可为空的。
  * A common Spring annotation to declare that parameters and return values
  * are to be considered as non-nullable by default for a given package.
  *

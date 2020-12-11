@@ -20,7 +20,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 /**
- * Used by {@link org.springframework.oxm.jaxb.Jaxb2MarshallerTests}.
+ * Used by
  *
  * @author Arjen Poutsma
  */
