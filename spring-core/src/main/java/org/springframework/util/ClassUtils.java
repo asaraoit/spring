@@ -1168,16 +1168,19 @@ public abstract class ClassUtils {
 		Assert.notNull(clazz, "Class must not be null");
 		Assert.notNull(methodName, "Method name must not be null");
 		int count = 0;
+		// 当前类对象
 		Method[] declaredMethods = clazz.getDeclaredMethods();
 		for (Method method : declaredMethods) {
 			if (methodName.equals(method.getName())) {
 				count++;
 			}
 		}
+		// 实现的接口
 		Class<?>[] ifcs = clazz.getInterfaces();
 		for (Class<?> ifc : ifcs) {
 			count += getMethodCountForName(ifc, methodName);
 		}
+		// 父类
 		if (clazz.getSuperclass() != null) {
 			count += getMethodCountForName(clazz.getSuperclass(), methodName);
 		}

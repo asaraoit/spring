@@ -216,9 +216,9 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		Assert.notNull(beanName, "Bean name must not be null");
 		// 全局变量需要同步
 		synchronized (this.singletonObjects) {
-			// 首先检查对应的 bean 是否已经加载过，因为 singleton 模式其实就是服用以前创建的 bean，所以这一步是必须的
+			// 首先检查对应的 bean 是否已经加载过，因为 singleton 模式其实就是复用以前创建的 bean，所以这一步是必须的
 			Object singletonObject = this.singletonObjects.get(beanName);
-			// 如果没有存在缓存中获取到，才进行 singleton 的 bean 的初始化
+			// 如果没有在缓存中获取到，才进行 singleton 的 bean 的初始化
 			if (singletonObject == null) {
 				if (this.singletonsCurrentlyInDestruction) {
 					throw new BeanCreationNotAllowedException(beanName,
@@ -235,6 +235,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					this.suppressedExceptions = new LinkedHashSet<>();
 				}
 				try {
+					// 初始化 bean
 					singletonObject = singletonFactory.getObject();
 					newSingleton = true;
 				}
@@ -258,9 +259,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (recordSuppressedExceptions) {
 						this.suppressedExceptions = null;
 					}
+					// 当 bean 加载结束后需要移除缓存中对该 bean 的正在加载状态
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
+					// 将结果记录至缓存并删除加载 bean 过程中所记录的各种辅助状态
 					addSingleton(beanName, singletonObject);
 				}
 			}
@@ -351,6 +354,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @see #isSingletonCurrentlyInCreation
 	 */
 	protected void beforeSingletonCreation(String beanName) {
+		// 记录加载状态，也就是通过 this.singletonCurrentlyInCreation.add(beanName) 将当前正要创建的 bean 记录在缓存中，这样
+		// 便可以对循环依赖进行检测
 		if (!this.inCreationCheckExclusions.contains(beanName) && !this.singletonsCurrentlyInCreation.add(beanName)) {
 			throw new BeanCurrentlyInCreationException(beanName);
 		}
